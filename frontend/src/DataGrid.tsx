@@ -140,6 +140,10 @@ export default function DataGridDemo() {
             variant="standard"
             value={filters.phone || ""}
             onChange={(e) => handleFilterChange("phone", e.target.value)}
+            onKeyDown={(e) => {
+              // ⛔ stop DataGrid from hijacking space
+              e.stopPropagation();
+            }}
             InputProps={{ disableUnderline: true }}
             placeholder="Search..."
             fullWidth
@@ -227,6 +231,15 @@ export default function DataGridDemo() {
 
   return (
     <Box>
+      <TextField
+        variant="outlined"
+        size="small"
+        placeholder="Global search..."
+        value={filters.global || ""}
+        onChange={(e) => handleFilterChange("global", e.target.value)}
+        sx={{ mb: 2, width: "300px" }}
+      />
+
       <DataGrid
         getRowHeight={(params) => {
           if (params.model.isFilterRow) return 40; // or any smaller height
