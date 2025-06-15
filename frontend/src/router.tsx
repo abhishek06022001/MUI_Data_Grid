@@ -11,7 +11,7 @@ const router = createBrowserRouter([
     path: "/dashboard",
     element: (
       <AuthGaurd>
-        <App />,
+        <App />
        </AuthGaurd>
     ), // layout
   },

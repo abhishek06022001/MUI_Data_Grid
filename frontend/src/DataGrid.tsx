@@ -10,6 +10,7 @@ import { TextField, IconButton, Tooltip } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useNavigate } from "react-router-dom";
 
 interface User {
   id: number | string;
@@ -39,7 +40,8 @@ export default function DataGridDemo() {
   const handleFilterChange = (field: string, value: string) => {
     setFilters((prev: any) => ({ ...prev, [field]: value }));
   };
-
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -51,7 +53,17 @@ export default function DataGridDemo() {
         ...filters,
       });
 
-      const res = await fetch(`http://localhost:4000/users?${params}`);
+      const res = await fetch(`http://localhost:4000/users?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("the res is", res);
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        setTimeout(() => {
+          navigate("/login", { replace: true });
+        }, 0);
+        return;
+      }
       const json = await res.json();
 
       const rowsWithSno = json.data.rows.map((user: any, index: number) => ({

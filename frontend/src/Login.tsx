@@ -5,13 +5,15 @@ import { useAuth } from "./AuthContext";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [token, setToken] = useState("");
+  // const [token, setToken] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
   const handleLogin = async () => {
     const res = await login(email, password);
     if (res) {
-      navigate("/dashboard");
+      setTimeout(() => {
+        navigate("/dashboard", { replace: true });
+      }, 0);
     }
   };
 
@@ -32,7 +34,7 @@ export default function LoginPage() {
         style={{ width: "100%", marginBottom: 10 }}
       />
       <button onClick={handleLogin}>Login</button>
-      {token && <p style={{ wordBreak: "break-word" }}>Token: {token}</p>}
+      {/* {token && <p style={{ wordBreak: "break-word" }}>Token: {token}</p>} */}
     </div>
   );
 }

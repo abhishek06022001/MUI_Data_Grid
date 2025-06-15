@@ -1,16 +1,23 @@
-import React from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
+
+
+
 
 type Props = {
   children: any;
 };
 
+
+
 function GuestGaurd({ children }: Props) {
+// / ✅ This gives the proper serializable location object
   const token = localStorage.getItem("token");
+
   if (token) {
-    return <Navigate to={"/dashboard"} replace state={{ from: location }} />;
+    return <Navigate to="/dashboard" replace />;
   }
-  return <div>{children}</div>;
+
+  return <>{children}</>;
 }
 
 export default GuestGaurd;
