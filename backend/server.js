@@ -91,15 +91,23 @@ app.get("/users", (req, res) => {
   const filters = [];
   const filterValues = [];
 
-  // Global filter
+  // Global search
   if (req.query.global) {
     const keyword = `%${req.query.global}%`;
-    filters.push(`(name LIKE ? OR email LIKE ? OR phone LIKE ?)`);
-    filterValues.push(keyword, keyword, keyword);
+    filters.push(`(first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR phone LIKE ?)`);
+    filterValues.push(keyword, keyword, keyword, keyword);
   }
 
-  // Column filters
-  ["email", "name", "phone", "region", "country", "address"].forEach((field) => {
+  // Date range filter
+  const startDate = req.query.start_date;
+  const endDate = req.query.to_date;
+  if (startDate && endDate) {
+    filters.push("STR_TO_DATE(created_at, '%d/%m/%Y') BETWEEN ? AND ?");
+    filterValues.push(startDate, endDate);
+  }
+
+  // Column-specific filters
+  ["email", "first_name", "last_name", "gender"].forEach((field) => {
     if (req.query[field]) {
       filters.push(`${field} LIKE ?`);
       filterValues.push(`%${req.query[field]}%`);
@@ -108,29 +116,31 @@ app.get("/users", (req, res) => {
 
   const filterSQL = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
-  db.query(
-    `SELECT * FROM mytable ${filterSQL} ORDER BY ${sortField} ${sortOrder} LIMIT ? OFFSET ?`,
-    [...filterValues, pageSize, offset],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: err });
+  const query = `
+    SELECT id, email, first_name, last_name, created_at, gender
+    FROM mock_data
+    ${filterSQL}
+    ORDER BY ${sortField} ${sortOrder}
+    LIMIT ? OFFSET ?
+  `;
 
-      db.query(
-        `SELECT COUNT(*) AS count FROM mytable ${filterSQL}`,
-        filterValues,
-        (err2, countResult) => {
-          if (err2) return res.status(500).json({ error: err2 });
+  db.query(query, [...filterValues, pageSize, offset], (err, results) => {
+    if (err) return res.status(500).json({ error: err });
 
-          res.json({
-            data: {
-              rows: results,
-              total: countResult[0].count,
-            },
-          });
-        }
-      );
-    }
-  );
+    const countQuery = `SELECT COUNT(*) AS count FROM mock_data ${filterSQL}`;
+    db.query(countQuery, filterValues, (err2, countResult) => {
+      if (err2) return res.status(500).json({ error: err2 });
+
+      res.json({
+        data: {
+          rows: results,
+          total: countResult[0].count,
+        },
+      });
+    });
+  });
 });
+
 
   
 

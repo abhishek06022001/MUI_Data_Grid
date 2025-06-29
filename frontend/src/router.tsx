@@ -10,9 +10,9 @@ const router = createBrowserRouter([
   {
     path: "/dashboard",
     element: (
-      <AuthGaurd>
+      // <AuthGaurd>
         <App />
-       </AuthGaurd>
+      //  </AuthGaurd>
     ), // layout
   },
   {

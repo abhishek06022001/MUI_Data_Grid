@@ -1,4 +1,3 @@
-//
 import * as React from "react";
 import Box from "@mui/material/Box";
 import {
@@ -6,23 +5,16 @@ import {
   type GridColDef,
   type GridSortModel,
 } from "@mui/x-data-grid";
-import { TextField, IconButton, Tooltip } from "@mui/material";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { useNavigate } from "react-router-dom";
+import { TextField, Tooltip } from "@mui/material";
 
 interface User {
   id: number | string;
   sno?: number;
   email: string;
-  name: string;
-  phone: number;
-  region: string;
-  country: string;
-  numberrange: string;
-  list: string;
-  address: string;
+  first_name: string;
+  last_name: string;
+  created_at: string;
+  gender: string;
   isFilterRow?: boolean;
 }
 
@@ -40,8 +32,7 @@ export default function DataGridDemo() {
   const handleFilterChange = (field: string, value: string) => {
     setFilters((prev: any) => ({ ...prev, [field]: value }));
   };
-  const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -53,17 +44,7 @@ export default function DataGridDemo() {
         ...filters,
       });
 
-      const res = await fetch(`http://localhost:4000/users?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log("the res is", res);
-      if (res.status === 401) {
-        localStorage.removeItem("token");
-        setTimeout(() => {
-          navigate("/login", { replace: true });
-        }, 0);
-        return;
-      }
+      const res = await fetch(`http://localhost:4000/users?${params}`);
       const json = await res.json();
 
       const rowsWithSno = json.data.rows.map((user: any, index: number) => ({
@@ -75,13 +56,10 @@ export default function DataGridDemo() {
         id: "filter-row",
         isFilterRow: true,
         email: "",
-        name: "",
-        phone: 0,
-        region: "",
-        country: "",
-        numberrange: "",
-        list: "",
-        address: "",
+        first_name: "",
+        last_name: "",
+        created_at: "",
+        gender: "",
       };
 
       setUsers([filterRow, ...rowsWithSno]);
@@ -94,8 +72,14 @@ export default function DataGridDemo() {
   };
 
   React.useEffect(() => {
-    fetchData();
+    const hasDateFilters = filters.start_date && filters.to_date;
+    const isUsingDateFilterOnly = filters.start_date || filters.to_date;
+
+    if (!isUsingDateFilterOnly || hasDateFilters) {
+      fetchData();
+    }
   }, [paginationModel, sortModel, filters]);
+  
 
   const columns: GridColDef[] = [
     {
@@ -114,9 +98,9 @@ export default function DataGridDemo() {
             variant="standard"
             value={filters.email || ""}
             onChange={(e) => handleFilterChange("email", e.target.value)}
-            InputProps={{ disableUnderline: true }}
             placeholder="Search..."
             fullWidth
+            InputProps={{ disableUnderline: true }}
           />
         ) : (
           <Tooltip title={params.value || ""}>
@@ -125,118 +109,67 @@ export default function DataGridDemo() {
         ),
     },
     {
-      field: "name",
-      headerName: "Full name",
+      field: "first_name",
+      headerName: "First Name",
       flex: 1,
       renderCell: (params) =>
         params.row.isFilterRow ? (
           <TextField
             variant="standard"
-            value={filters.name || ""}
-            onChange={(e) => handleFilterChange("name", e.target.value)}
-            InputProps={{ disableUnderline: true }}
+            value={filters.first_name || ""}
+            onChange={(e) => handleFilterChange("first_name", e.target.value)}
             placeholder="Search..."
             fullWidth
+            InputProps={{ disableUnderline: true }}
           />
         ) : (
           params.value
         ),
     },
     {
-      field: "phone",
-      headerName: "Phone",
-      width: 120,
-      renderCell: (params) =>
-        params.row.isFilterRow ? (
-          <TextField
-            variant="standard"
-            value={filters.phone || ""}
-            onChange={(e) => handleFilterChange("phone", e.target.value)}
-            onKeyDown={(e) => {
-              // ⛔ stop DataGrid from hijacking space
-              e.stopPropagation();
-            }}
-            InputProps={{ disableUnderline: true }}
-            placeholder="Search..."
-            fullWidth
-          />
-        ) : (
-          params.value
-        ),
-    },
-    {
-      field: "region",
-      headerName: "Region",
-      width: 120,
-      renderCell: (params) =>
-        params.row.isFilterRow ? (
-          <TextField
-            variant="standard"
-            value={filters.region || ""}
-            onChange={(e) => handleFilterChange("region", e.target.value)}
-            InputProps={{ disableUnderline: true }}
-            placeholder="Search..."
-            fullWidth
-          />
-        ) : (
-          params.value
-        ),
-    },
-    {
-      field: "country",
-      headerName: "Country",
-      width: 120,
-      renderCell: (params) =>
-        params.row.isFilterRow ? (
-          <TextField
-            variant="standard"
-            value={filters.country || ""}
-            onChange={(e) => handleFilterChange("country", e.target.value)}
-            InputProps={{ disableUnderline: true }}
-            placeholder="Search..."
-            fullWidth
-          />
-        ) : (
-          params.value
-        ),
-    },
-    {
-      field: "address",
-      headerName: "Address",
+      field: "last_name",
+      headerName: "Last Name",
       flex: 1,
       renderCell: (params) =>
         params.row.isFilterRow ? (
           <TextField
             variant="standard"
-            value={filters.address || ""}
-            onChange={(e) => handleFilterChange("address", e.target.value)}
-            InputProps={{ disableUnderline: true }}
+            value={filters.last_name || ""}
+            onChange={(e) => handleFilterChange("last_name", e.target.value)}
             placeholder="Search..."
             fullWidth
+            InputProps={{ disableUnderline: true }}
           />
         ) : (
           params.value
         ),
     },
     {
-      field: "actions",
-      headerName: "Actions",
-      width: 150,
-      sortable: false,
-      filterable: false,
+      field: "created_at",
+      headerName: "Created At",
+      flex: 1,
       renderCell: (params) =>
-        params.row.isFilterRow ? null : (
-          <>
-            <IconButton onClick={() => console.log("View", params.row.id)}>
-              <VisibilityIcon sx={{ color: "blue" }} />
-            </IconButton>
-            <IconButton onClick={() => console.log("Edit", params.row.id)}>
-              <EditIcon />
-            </IconButton>
-            <IconButton onClick={() => console.log("Delete", params.row.id)}>
-              <DeleteIcon />
-            </IconButton>
-          </>
+        params.row.isFilterRow ? (
+          <Box display="flex" gap={1}>
+            <TextField
+              type="date"
+              variant="standard"
+              value={filters.start_date || ""}
+              onChange={(e) => handleFilterChange("start_date", e.target.value)}
+              InputProps={{ disableUnderline: true }}
+              fullWidth
+            />
+            <TextField
+              type="date"
+              variant="standard"
+              value={filters.to_date || ""}
+              onChange={(e) => handleFilterChange("to_date", e.target.value)}
+              InputProps={{ disableUnderline: true }}
+              fullWidth
+            />
+          </Box>
+        ) : (
+          params.value
         ),
     },
   ];
@@ -251,12 +184,8 @@ export default function DataGridDemo() {
         onChange={(e) => handleFilterChange("global", e.target.value)}
         sx={{ mb: 2, width: "300px" }}
       />
-
       <DataGrid
-        getRowHeight={(params) => {
-          if (params.model.isFilterRow) return 40; // or any smaller height
-          return null; // default height for others
-        }}
+        getRowHeight={(params) => (params.model.isFilterRow ? 40 : undefined)}
         rows={users}
         columns={columns}
         rowCount={total}
@@ -265,10 +194,10 @@ export default function DataGridDemo() {
         paginationModel={paginationModel}
         onPaginationModelChange={setPaginationModel}
         pageSizeOptions={[5, 10, 20]}
-        disableRowSelectionOnClick
         sortingMode="server"
         sortModel={sortModel}
         onSortModelChange={setSortModel}
+        disableRowSelectionOnClick
         getRowClassName={(params) =>
           params.row.isFilterRow ? "filter-row" : ""
         }
